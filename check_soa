@@ -81,14 +81,17 @@ def GetNS(domain, verbose=False):
 
 
 def getSOA(nameserver,domain):
-    r = DNS.Request(domain,qtype='SOA',server=nameserver,aa=1).req()
-    if r.header['status'] != 'NOERROR':
-        Error("received status of %s when attempting to query %s for NS"%
-                 (r.header['status'], nameserver))
-    if r.header['aa'] != 1:
-        Error("NS %s doesn't believe that it's authoritative!"% nameserver)
-    primary,email,serial,refresh,retry,expire,minimum = r.answers[0]['data']
-    return serial[1]
+    try:
+	r = DNS.Request(domain,qtype='SOA',server=nameserver,aa=1).req()
+        if r.header['status'] != 'NOERROR':
+            Error("received status of %s when attempting to query %s for NS"%
+                     (r.header['status'], nameserver))
+        if r.header['aa'] != 1:
+            Error("NS %s doesn't believe that it's authoritative!"% nameserver)
+        primary,email,serial,refresh,retry,expire,minimum = r.answers[0]['data']
+        return serial[1]
+    except:
+	print "Problem using %s for %s domain" % (nameserver, domain)
 
 if __name__ == "__main__":
     main()
