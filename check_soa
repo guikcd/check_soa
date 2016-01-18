@@ -10,7 +10,7 @@ try:
     import DNS
 except ImportError:
     print "Error importing DNS, is pydns installed ? (python-dns on Debian)"
-    sys.exit(1)
+    sys.exit(4)
 
 from optparse import OptionParser
 
