@@ -10,7 +10,7 @@ try:
     import DNS
 except ImportError:
     print "Error importing DNS, is pydns installed ? (python-dns on Debian)"
-    sys.exit(1)    
+    sys.exit(1)
 
 from optparse import OptionParser
 
@@ -21,15 +21,18 @@ TIMEOUT = 5
 DNS.ParseResolvConf()
 
 def Error(mesg):
-    print sys.argv[0],"ERROR:"
+    print sys.argv[0], "ERROR:"
     print mesg
     sys.exit(1)
 
 def main():
-    USAGE  ="Usage: %prog domain [options]"
+    USAGE = "Usage: %prog domain [options]"
     VERSION_PRINT = "0.2"
-    DESCRIPTION = "Check serial in a dns domain name SOA record, no output if ok by default."
-    parser = OptionParser(USAGE, description=DESCRIPTION, version=VERSION_PRINT)
+    DESCRIPTION = "Check serial in a dns domain name SOA record, " \
+                  "no output if ok by default."
+    parser = OptionParser(USAGE,
+                          description=DESCRIPTION,
+                          version=VERSION_PRINT)
 
     parser.add_option("-v", "--verbose",
         action="store_true",
@@ -64,11 +67,11 @@ def main():
 
         serial = GetSOA(ns, domain, options.timeout)
         if verbose:
-            print "  ",ns
+            print "  ", ns
             print "      NS has serial", serial
 
         # FIXME: suppose the first ns is the master
-	# if serial1 is empty, first loop
+        # if serial1 is empty, first loop
         if not serial1:
             serial1 = serial
         else:
@@ -78,16 +81,16 @@ def main():
 
 def GetNS(domain, verbose=False, timeout=TIMEOUT):
     # hm. this might fail if a server is off the air.
-    r = DNS.Request(domain,qtype='SOA', timeout=timeout).req()
+    r = DNS.Request(domain, qtype='SOA', timeout=timeout).req()
     if r.header['status'] != 'NOERROR':
         Error("received status of %s when attempting to look up SOA for %s" %
-                ((r.header['status']), domain))
+                (r.header['status'], domain))
     primary,email,serial,refresh,retry,expire,minimum = r.answers[0]['data']
     if verbose:
-        print "Primary nameserver for domain %s is: %s" % (domain,primary)
+        print "Primary nameserver for domain %s is: %s" % (domain, primary)
     try:
-        r = DNS.Request(domain,qtype='NS',
-			server=primary,aa=1,
+        r = DNS.Request(domain, qtype='NS',
+			server=primary, aa=1,
 			timeout=timeout).req()
         if r.header['status'] != 'NOERROR':
             Error("received status of %s when attempting to query %s for NSs" %
@@ -98,7 +101,7 @@ def GetNS(domain, verbose=False, timeout=TIMEOUT):
         nslist = map(lambda x:x['data'], r.answers)
         return nslist
     except:
-        Error("Problem getting NS on %s for %s"% (primary, domain))
+        Error("Problem getting NS on %s for %s" % (primary, domain))
 	return []
 
 
@@ -118,7 +121,7 @@ def GetSOA(nameserver, domain, timeout=TIMEOUT):
         primary,email,serial,refresh,retry,expire,minimum = r.answers[0]['data']
         return serial[1]
     except:
-	Error("Problem using %s for %s domain"% (nameserver, domain))
+        Error("Problem using %s for %s domain" % (nameserver, domain))
 
 if __name__ == "__main__":
     main()
