@@ -63,11 +63,11 @@ def main():
 
     # used to compare serials
     serial1 = ""
-    for ns in nslist:
+    for nameserver in nslist:
 
-        serial = GetSOA(ns, domain, options.timeout)
+        serial = GetSOA(nameserver, domain, options.timeout)
         if options.verbose is True:
-            print "  ", ns
+            print "  ", nameserver
             print "      NS has serial", serial
 
         # FIXME: suppose the first ns is the master
@@ -77,28 +77,28 @@ def main():
         else:
            if serial1 != serial:
                print "Warning: serials are different for %s:" % domain
-               print "Expected %s, found %s on %s" % (serial1, serial, ns)
+               print "Expected %s, found %s on %s" % (serial1, serial, nameserver)
 
 def GetNS(domain, verbose, timeout=TIMEOUT):
     # hm. this might fail if a server is off the air.
-    r = DNS.Request(domain, qtype='SOA', timeout=timeout).req()
-    if r.header['status'] != 'NOERROR':
+    request = DNS.Request(domain, qtype='SOA', timeout=timeout).req()
+    if request.header['status'] != 'NOERROR':
         Error("received status of %s when attempting to look up SOA for %s" %
-                (r.header['status'], domain))
-    primary,email,serial,refresh,retry,expire,minimum = r.answers[0]['data']
+                (request.header['status'], domain))
+    primary,email,serial,refresh,retry,expire,minimum = request.answers[0]['data']
     if verbose is True:
         print "Primary nameserver for domain %s is: %s" % (domain, primary)
     try:
-        r = DNS.Request(domain, qtype='NS',
+        request = DNS.Request(domain, qtype='NS',
 			server=primary, aa=1,
 			timeout=timeout).req()
-        if r.header['status'] != 'NOERROR':
+        if request.header['status'] != 'NOERROR':
             Error("received status of %s when attempting to query %s for NSs" %
-                    (r.header['status'], primary))
-        if r.header['aa'] != 1:
+                    (request.header['status'], primary))
+        if request.header['aa'] != 1:
             Error("primary NS %s doesn't believe that it's authoritative!" %
 		primary)
-        nslist = map(lambda x:x['data'], r.answers)
+        nslist = map(lambda x:x['data'], request.answers)
         return nslist
     except:
         Error("Problem getting NS on %s for %s" % (primary, domain))
@@ -107,18 +107,18 @@ def GetNS(domain, verbose, timeout=TIMEOUT):
 
 def GetSOA(nameserver, domain, timeout=TIMEOUT):
     try:
-	r = DNS.Request(domain,
+	request = DNS.Request(domain,
 			qtype='SOA',
 			server=nameserver,
 			aa=1,
 			timeout=timeout).req()
-        if r.header['status'] != 'NOERROR':
+        if request.header['status'] != 'NOERROR':
             Error("received status of %s when attempting to query %s for NS" %
-                     (r.header['status'], nameserver))
-        if r.header['aa'] != 1:
+                     (request.header['status'], nameserver))
+        if request.header['aa'] != 1:
             Error("NS %s doesn't believe that it's authoritative!" %
 		nameserver)
-        primary,email,serial,refresh,retry,expire,minimum = r.answers[0]['data']
+        primary,email,serial,refresh,retry,expire,minimum = request.answers[0]['data']
         return serial[1]
     except:
         Error("Problem using %s for %s domain" % (nameserver, domain))
