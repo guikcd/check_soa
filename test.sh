@@ -15,7 +15,7 @@ else
 fi
 
 ./check_soa nonexistentdomain.tld --verbose > $stderr 2>&1
-if [ $? -ne 1 ]
+if [ $? -ne 2 ]
 then
 	echo "TEST FAILED: nonexistent domain don't return 1, output:"
 	cat $stderr
@@ -30,7 +30,7 @@ sudo iptables --flush
 sudo iptables --append OUTPUT --destination ns2.iroqwa.org --jump DROP
 
 ./check_soa iroqwa.org --verbose > $stderr 2>&1
-if [ $? -ne 1 ]
+if [ $? -ne 2 ]
 then
 	echo "TEST FAILED: existent domain with unreachable ns don't return 1, output:"
 	cat $stderr
