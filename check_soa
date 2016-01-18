@@ -15,7 +15,7 @@ except ImportError:
 from optparse import OptionParser
 
 # Set timeout for queries (pydns default: 30)
-TIMEOUT = 5
+TIMEOUT = 3
 
 # initialize resolvers
 DNS.ParseResolvConf()
