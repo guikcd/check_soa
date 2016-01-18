@@ -36,27 +36,27 @@ def main():
 
     parser.add_option("-v", "--verbose",
         action="store_true",
-        help="Verbose output")
+        dest="verbose",
+        default=False,
+        help="Verbose output (default: %default)")
     parser.add_option("-t", "--timeout",
+        action="store",
         type="int",
         dest="timeout",
-        help="Timeout for queries (default: %default)",
+        help="Timeout in seconds for each request " \
+                "(1 for SOA and 1 for each NS, default: %default)",
         default=TIMEOUT)
 
     (options, args) = parser.parse_args()
 
-    if len(sys.argv) < 2:
+    if len(args) < 1:
         parser.print_help()
         sys.exit(1)
 
-    verbose = False
-    if options.verbose:
-        verbose = True
-
-    domain = sys.argv[1]
+    domain = args[0]
     nslist = GetNS(domain, options.verbose, options.timeout)
     if nslist:
-        if verbose:
+        if options.verbose == True:
             print "According to the primary, nameservers are:"
     else:
        sys.exit(1)
@@ -66,7 +66,7 @@ def main():
     for ns in nslist:
 
         serial = GetSOA(ns, domain, options.timeout)
-        if verbose:
+        if options.verbose == True:
             print "  ", ns
             print "      NS has serial", serial
 
@@ -79,14 +79,14 @@ def main():
                print "Warning: serials are different for %s:" % domain
                print "Expected %s, found %s on %s" % (serial1, serial, ns)
 
-def GetNS(domain, verbose=False, timeout=TIMEOUT):
+def GetNS(domain, verbose, timeout=TIMEOUT):
     # hm. this might fail if a server is off the air.
     r = DNS.Request(domain, qtype='SOA', timeout=timeout).req()
     if r.header['status'] != 'NOERROR':
         Error("received status of %s when attempting to look up SOA for %s" %
                 (r.header['status'], domain))
     primary,email,serial,refresh,retry,expire,minimum = r.answers[0]['data']
-    if verbose:
+    if verbose == True:
         print "Primary nameserver for domain %s is: %s" % (domain, primary)
     try:
         r = DNS.Request(domain, qtype='NS',
