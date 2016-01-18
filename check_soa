@@ -3,7 +3,7 @@
 # - SOA to get ref serial and primary ns
 # - get NS list (don't use the primary to verify the list)
 # - query each NS (except the primary !) and verify the serial returned
-# TODO: use GetSOA first and to detect the master (save one dns query !) :
+# TODO: use getSOA first and to detect the master (save one dns query !) :
 
 import sys
 try:
@@ -65,7 +65,7 @@ def main():
     serial1 = ""
     for nameserver in nslist:
 
-        serial = GetSOA(nameserver, domain, options.timeout)
+        serial = getSOA(nameserver, domain, options.timeout)
         if options.verbose is True:
             print "  ", nameserver
             print "      NS has serial", serial
@@ -105,7 +105,7 @@ def GetNS(domain, verbose, timeout=TIMEOUT):
 	return []
 
 
-def GetSOA(nameserver, domain, timeout=TIMEOUT):
+def getSOA(nameserver, domain, timeout=TIMEOUT):
     try:
 	request = DNS.Request(domain,
 			qtype='SOA',
