@@ -56,7 +56,7 @@ def main():
     domain = args[0]
     nslist = GetNS(domain, options.verbose, options.timeout)
     if nslist:
-        if options.verbose == True:
+        if options.verbose is True:
             print "According to the primary, nameservers are:"
     else:
        sys.exit(1)
@@ -66,7 +66,7 @@ def main():
     for ns in nslist:
 
         serial = GetSOA(ns, domain, options.timeout)
-        if options.verbose == True:
+        if options.verbose is True:
             print "  ", ns
             print "      NS has serial", serial
 
@@ -86,7 +86,7 @@ def GetNS(domain, verbose, timeout=TIMEOUT):
         Error("received status of %s when attempting to look up SOA for %s" %
                 (r.header['status'], domain))
     primary,email,serial,refresh,retry,expire,minimum = r.answers[0]['data']
-    if verbose == True:
+    if verbose is True:
         print "Primary nameserver for domain %s is: %s" % (domain, primary)
     try:
         r = DNS.Request(domain, qtype='NS',
