@@ -23,7 +23,7 @@ DNS.ParseResolvConf()
 def Error(mesg):
     print sys.argv[0], "ERROR:"
     print mesg
-    sys.exit(1)
+    sys.exit(2)
 
 def main():
     USAGE = "Usage: %prog domain [options]"
