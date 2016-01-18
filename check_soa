@@ -1,9 +1,11 @@
 #!/usr/bin/python
-# inspired from /usr/share/doc/python-dns/examples/test5.py
-# - SOA to get ref serial and primary ns
-# - get NS list (don't use the primary to verify the list)
-# - query each NS (except the primary !) and verify the serial returned
-# TODO: use getSOA first and to detect the master (save one dns query !) :
+"""
+ inspired from /usr/share/doc/python-dns/examples/test5.py
+ - SOA to get ref serial and primary ns
+ - get NS list (don't use the primary to verify the list)
+ - query each NS (except the primary !) and verify the serial returned
+ TODO: use get_soa first and to detect the master (save one dns query !) :
+"""
 
 import sys
 try:
@@ -20,12 +22,14 @@ TIMEOUT = 3
 # initialize resolvers
 DNS.ParseResolvConf()
 
-def Error(mesg):
+def error(mesg):
+    """ simple error message managment """
     print sys.argv[0], "ERROR:"
     print mesg
     sys.exit(2)
 
 def main():
+    """ main prog """
     USAGE = "Usage: %prog domain [options]"
     VERSION_PRINT = "0.2"
     DESCRIPTION = "Check serial in a dns domain name SOA record, " \
@@ -35,17 +39,17 @@ def main():
                           version=VERSION_PRINT)
 
     parser.add_option("-v", "--verbose",
-        action="store_true",
-        dest="verbose",
-        default=False,
-        help="Verbose output (default: %default)")
+                      action="store_true",
+                      dest="verbose",
+                      default=False,
+                      help="Verbose output (default: %default)")
     parser.add_option("-t", "--timeout",
-        action="store",
-        type="int",
-        dest="timeout",
-        help="Timeout in seconds for each request " \
-                "(1 for SOA and 1 for each NS, default: %default)",
-        default=TIMEOUT)
+                      action="store",
+                      type="int",
+                      dest="timeout",
+                      help="Timeout in seconds for each request " \
+                           "(1 for SOA and 1 for each NS, default: %default)",
+                      default=TIMEOUT)
 
     (options, args) = parser.parse_args()
 
@@ -54,18 +58,18 @@ def main():
         sys.exit(1)
 
     domain = args[0]
-    nslist = GetNS(domain, options.verbose, options.timeout)
+    nslist = get_ns(domain, options.verbose, options.timeout)
     if nslist:
         if options.verbose is True:
             print "According to the primary, nameservers are:"
     else:
-       sys.exit(1)
+        sys.exit(1)
 
     # used to compare serials
     serial1 = ""
     for nameserver in nslist:
 
-        serial = getSOA(nameserver, domain, options.timeout)
+        serial = get_soa(nameserver, domain, options.timeout)
         if options.verbose is True:
             print "  ", nameserver
             print "      NS has serial", serial
@@ -75,53 +79,59 @@ def main():
         if not serial1:
             serial1 = serial
         else:
-           if serial1 != serial:
-               print "Warning: serials are different for %s:" % domain
-               print "Expected %s, found %s on %s" % (serial1, serial, nameserver)
+            if serial1 != serial:
+                print "Warning: serials are different for %s:" % domain
+                print "Expected %s, found %s on %s" % (serial1, serial, nameserver)
 
-def GetNS(domain, verbose, timeout=TIMEOUT):
+def get_ns(domain, verbose, timeout=TIMEOUT):
+    """ return NS servers for a given domain """
     # hm. this might fail if a server is off the air.
     request = DNS.Request(domain, qtype='SOA', timeout=timeout).req()
     if request.header['status'] != 'NOERROR':
-        Error("received status of %s when attempting to look up SOA for %s" %
+        error("received status of %s when attempting to look up SOA for %s" % \
                 (request.header['status'], domain))
-    primary,email,serial,refresh,retry,expire,minimum = request.answers[0]['data']
+    primary, email, serial, refresh, retry, expire, minimum = \
+            request.answers[0]['data']
     if verbose is True:
         print "Primary nameserver for domain %s is: %s" % (domain, primary)
     try:
-        request = DNS.Request(domain, qtype='NS',
-			server=primary, aa=1,
-			timeout=timeout).req()
+        request = DNS.Request(domain,
+                              qtype='NS',
+                              server=primary,
+                              aa=1,
+			      timeout=timeout).req()
         if request.header['status'] != 'NOERROR':
-            Error("received status of %s when attempting to query %s for NSs" %
-                    (request.header['status'], primary))
+            error("received status of %s when attempting to query %s for NSs" % \
+                (request.header['status'], primary))
         if request.header['aa'] != 1:
-            Error("primary NS %s doesn't believe that it's authoritative!" %
-		primary)
-        nslist = map(lambda x:x['data'], request.answers)
+            error("primary NS %s doesn't believe that it's authoritative!" % \
+                primary)
+        nslist = [x['data'] for x in request.answers]
         return nslist
     except:
-        Error("Problem getting NS on %s for %s" % (primary, domain))
-	return []
+        error("Problem getting NS on %s for %s" % (primary, domain))
+        return []
 
 
-def getSOA(nameserver, domain, timeout=TIMEOUT):
+def get_soa(nameserver, domain, timeout=TIMEOUT):
+    """ return SOA serial for a given nameserver """
     try:
-	request = DNS.Request(domain,
-			qtype='SOA',
-			server=nameserver,
-			aa=1,
-			timeout=timeout).req()
+        request = DNS.Request(domain,
+                              qtype='SOA',
+                              server=nameserver,
+                              aa=1,
+                              timeout=timeout).req()
         if request.header['status'] != 'NOERROR':
-            Error("received status of %s when attempting to query %s for NS" %
-                     (request.header['status'], nameserver))
+            error("received status of %s when attempting to query %s for NS" % \
+                (request.header['status'], nameserver))
         if request.header['aa'] != 1:
-            Error("NS %s doesn't believe that it's authoritative!" %
+            error("NS %s doesn't believe that it's authoritative!" % \
 		nameserver)
-        primary,email,serial,refresh,retry,expire,minimum = request.answers[0]['data']
+        primary, email, serial, refresh, retry, expire, minimum = \
+            request.answers[0]['data']
         return serial[1]
     except:
-        Error("Problem using %s for %s domain" % (nameserver, domain))
+        error("Problem using %s for %s domain" % (nameserver, domain))
 
 if __name__ == "__main__":
     main()
