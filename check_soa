@@ -29,7 +29,7 @@ def error_msg(mesg):
 def main():
     """ main prog """
     usage = "Usage: %prog domain [options]"
-    version_print = "0.2"
+    version_print = "0.3"
     description = "Check serial in a dns domain name SOA record, " \
                   "no output if ok by default."
     parser = OptionParser(usage,
