@@ -22,8 +22,7 @@ DNS.ParseResolvConf()
 
 def error_msg(mesg):
     """ simple error message managment """
-    print(sys.argv[0], "ERROR:")
-    print(mesg)
+    print(sys.argv[0], "ERROR:", mesg)
     sys.exit(2)
 
 def main():
