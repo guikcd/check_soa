@@ -96,10 +96,10 @@ def get_ns(domain, verbose, timeout):
     try:
         request = DNS.Request(domain, qtype='NS', server=primary, aa=1, timeout=timeout).req()
         if request.header['status'] != 'NOERROR':
-            error("received status of %s when attempting to query %s for NSs" % \
+            error_msg("received status of %s when attempting to query %s for NSs" % \
                 (request.header['status'], primary))
         if request.header['aa'] != 1:
-            error("primary NS %s doesn't believe that it's authoritative!" % \
+            error_msg("primary NS %s doesn't believe that it's authoritative!" % \
                 primary)
         nslist = [x['data'] for x in request.answers]
         return nslist
@@ -118,10 +118,10 @@ def get_soa(nameserver, domain, timeout):
                               aa=1,
                               timeout=timeout).req()
         if request.header['status'] != 'NOERROR':
-            error("received status of %s when attempting to query %s for NS" % \
+            error_msg("received status of %s when attempting to query %s for NS" % \
                 (request.header['status'], nameserver))
         if request.header['aa'] != 1:
-            error("NS %s doesn't believe that it's authoritative!" % \
+            error_msg("NS %s doesn't believe that it's authoritative!" % \
 		nameserver)
         primary, email, serial, refresh, retry, expire, minimum = \
             request.answers[0]['data']
