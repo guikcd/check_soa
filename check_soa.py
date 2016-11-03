@@ -9,13 +9,12 @@
 
 from __future__ import print_function
 import sys
+from optparse import OptionParser
 try:
     import DNS
 except ImportError:
     print("Error importing DNS, is pydns installed ? (python-dns on Debian)")
     sys.exit(4)
-
-from optparse import OptionParser
 
 # initialize resolvers
 DNS.ParseResolvConf()
@@ -28,7 +27,7 @@ def error_msg(mesg):
 def main():
     """ main prog """
     usage = "Usage: %prog domain [options]"
-    version_print = "0.3"
+    version_print = "0.4"
     description = "Check serial in a dns domain name SOA record, " \
                   "no output if ok by default."
     parser = OptionParser(usage,
@@ -96,11 +95,11 @@ def get_ns(domain, verbose, timeout):
     try:
         request = DNS.Request(domain, qtype='NS', server=primary, aa=1, timeout=timeout).req()
         if request.header['status'] != 'NOERROR':
-            error_msg("received status of %s when attempting to query %s for NSs" % \
-                (request.header['status'], primary))
+            error_msg("received status of %s when attempting to query %s for %s NS" % \
+                (request.header['status'], primary, domain))
         if request.header['aa'] != 1:
-            error_msg("primary NS %s doesn't believe that it's authoritative!" % \
-                primary)
+            error_msg("primary NS %s of %s doesn't believe that it's authoritative for %s!" % \
+                domain, primary, domain)
         nslist = [x['data'] for x in request.answers]
         return nslist
     #pylint: disable=broad-except
@@ -118,11 +117,11 @@ def get_soa(nameserver, domain, timeout):
                               aa=1,
                               timeout=timeout).req()
         if request.header['status'] != 'NOERROR':
-            error_msg("received status of %s when attempting to query %s for NS" % \
-                (request.header['status'], nameserver))
+            error_msg("received status of %s when attempting to query %s for %s NS" % \
+                (request.header['status'], nameserver, domain))
         if request.header['aa'] != 1:
-            error_msg("NS %s doesn't believe that it's authoritative!" % \
-		nameserver)
+            error_msg("NS %s doesn't believe that it's authoritative for %s!" % \
+		nameserver, domain)
         primary, email, serial, refresh, retry, expire, minimum = \
             request.answers[0]['data']
         return serial[1]
